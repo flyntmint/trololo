@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="240" viewBox="0 0 320 240" role="img" aria-label="annoy face">
+  <defs>
+    <radialGradient id="g" cx="40%" cy="35%" r="70%">
+      <stop offset="0%" stop-color="#ffe659"/>
+      <stop offset="70%" stop-color="#f2b311"/>
+      <stop offset="100%" stop-color="#b5670d"/>
+    </radialGradient>
+  </defs>
+  <rect width="320" height="240" fill="#ececec"/>
+  <g transform="translate(24,20) rotate(-8 136 100)">
+    <path d="M18,38 C52,8 222,6 262,48 C300,92 286,170 240,196 C184,228 58,220 20,170 C-8,132 -10,72 18,38 Z" fill="url(#g)" stroke="#4a2b00" stroke-width="8"/>
+    <path d="M56,86 C70,70 114,64 146,68 C178,70 214,86 230,104 C220,128 194,154 154,164 C112,176 74,168 48,146 C44,122 44,102 56,86 Z" fill="#1b0000" stroke="#2e0a00" stroke-width="6"/>
+    <path d="M56,98 C74,84 112,80 146,84 C182,86 208,96 224,112 C214,118 198,124 176,130 C152,138 130,140 102,138 C80,136 64,130 52,120 Z" fill="#ffffff"/>
+    <path d="M52,132 C72,142 96,148 120,150 C148,152 180,148 210,132 C198,150 182,166 156,176 C128,186 98,184 74,170 C62,160 54,148 52,132 Z" fill="#c50000"/>
+    <path d="M62,62 C78,44 108,40 136,44" stroke="#2e1700" stroke-width="10" stroke-linecap="round"/>
+    <path d="M174,50 C194,42 220,44 238,58" stroke="#2e1700" stroke-width="10" stroke-linecap="round"/>
+  </g>
+</svg>

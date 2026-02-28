@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Classic Snake</title>
+    <style>
+      :root {
+        --panel-bg: rgba(242, 246, 248, 0.92);
+        --ink: #1f1f1f;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: radial-gradient(circle at 30% 20%, #b3e6ff 0%, #9bdcfc 30%, #7bc8ef 100%);
+        font-family: "Comic Sans MS", "Chalkboard SE", "Trebuchet MS", sans-serif;
+        color: var(--ink);
+      }
+
+      .snake-wrap {
+        width: min(94vw, 760px);
+        border: 3px solid var(--ink);
+        border-radius: 10px;
+        background: linear-gradient(180deg, #f8fbfc 0%, var(--panel-bg) 100%);
+        box-shadow: 0 18px 38px rgba(0, 0, 0, 0.24);
+        padding: 12px;
+      }
+
+      .snake-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+      }
+
+      .snake-meta {
+        font-size: 18px;
+        font-weight: 800;
+      }
+
+      .snake-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .snake-options {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin: 2px 0 10px;
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .snake-options label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .snake-options select {
+        border: 2px solid var(--ink);
+        border-radius: 8px;
+        background: #fff;
+        font: inherit;
+        padding: 4px 6px;
+      }
+
+      .rage-indicator {
+        border: 2px solid var(--ink);
+        border-radius: 8px;
+        background: #ffe6e6;
+        padding: 4px 8px;
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .snake-actions button,
+      .back-link {
+        border: 2px solid var(--ink);
+        border-radius: 8px;
+        background: #ffe07d;
+        color: #101010;
+        font-size: 14px;
+        font-weight: 800;
+        padding: 8px 10px;
+        cursor: pointer;
+        text-decoration: none;
+      }
+
+      .back-link {
+        display: inline-flex;
+        align-items: center;
+        background: #d5f4ff;
+      }
+
+      #snake-pause:disabled {
+        opacity: 0.6;
+        cursor: default;
+      }
+
+      .snake-board {
+        width: min(92vw, 560px);
+        height: min(92vw, 560px);
+        margin: 0 auto;
+        display: grid;
+        gap: 2px;
+        padding: 1px;
+        border: 2px solid var(--ink);
+        border-radius: 8px;
+        background: linear-gradient(180deg, #8ea39b 0%, #748980 100%);
+      }
+
+      .lose-overlay {
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.62);
+        z-index: 3;
+        border-radius: 8px;
+      }
+
+      .lose-overlay.visible {
+        display: flex;
+      }
+
+      .lose-overlay img {
+        width: min(58vw, 280px);
+        max-height: 56vh;
+        object-fit: contain;
+        border: 2px solid #fff;
+        border-radius: 8px;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+      }
+
+      .lose-card {
+        display: grid;
+        gap: 10px;
+        justify-items: center;
+      }
+
+      .lose-close {
+        border: 2px solid #202020;
+        border-radius: 8px;
+        background: #f2f2f2;
+        color: #121212;
+        font-size: 14px;
+        font-weight: 800;
+        padding: 7px 12px;
+        cursor: pointer;
+      }
+
+      .snake-cell {
+        background: radial-gradient(circle at 35% 30%, #f3f6f4 0%, #d5ddd8 100%);
+        border-radius: 6px;
+      }
+
+      .mobile-controls {
+        margin: 12px auto 0;
+        width: min(220px, 80vw);
+        display: none;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+      }
+
+      .mobile-controls button {
+        border: 2px solid var(--ink);
+        border-radius: 8px;
+        background: #fff;
+        font-size: 16px;
+        font-weight: 800;
+        min-height: 44px;
+      }
+
+      .mobile-controls .up {
+        grid-column: 2;
+      }
+
+      .mobile-controls .left {
+        grid-column: 1;
+        grid-row: 2;
+      }
+
+      .mobile-controls .down {
+        grid-column: 2;
+        grid-row: 2;
+      }
+
+      .mobile-controls .right {
+        grid-column: 3;
+        grid-row: 2;
+      }
+
+      .help {
+        margin: 10px 0 0;
+        text-align: center;
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      @media (max-width: 860px), (pointer: coarse) {
+        .mobile-controls {
+          display: grid;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="snake-wrap">
+      <div class="snake-top">
+        <div class="snake-meta">
+          Score: <span id="snake-score">0</span> | Status: <span id="snake-status">Running</span>
+        </div>
+        <div class="snake-actions">
+          <button id="snake-pause" type="button">Pause</button>
+          <button id="snake-restart" type="button">Restart</button>
+          <button id="snake-mute-song" type="button">Mute Song</button>
+          <a class="back-link" href="./index.html">Back</a>
+        </div>
+      </div>
+      <section class="snake-options" aria-label="Appearance options">
+        <label for="snake-color">
+          Snake Color
+          <select id="snake-color">
+            <option value="forest">Forest Green</option>
+            <option value="ocean">Ocean Blue</option>
+            <option value="amber">Amber Gold</option>
+          </select>
+        </label>
+        <label for="snake-fruit">
+          Fruit
+          <select id="snake-fruit">
+            <option value="apple">Apple</option>
+            <option value="orange">Orange</option>
+            <option value="plum">Plum</option>
+          </select>
+        </label>
+        <div id="snake-rage-indicator" class="rage-indicator">Rage: Off</div>
+      </section>
+      <section id="snake-board" class="snake-board" aria-label="Snake grid"></section>
+      <div id="snake-lose-overlay" class="lose-overlay" aria-hidden="true">
+        <div class="lose-card">
+          <img src="./src/muga.png" alt="you lost" />
+          <button id="snake-lose-close" class="lose-close" type="button">Close</button>
+        </div>
+      </div>
+      <section class="mobile-controls" aria-label="Mobile controls">
+        <button type="button" data-dir="up" class="up" aria-label="Move up">Up</button>
+        <button type="button" data-dir="left" class="left" aria-label="Move left">Left</button>
+        <button type="button" data-dir="down" class="down" aria-label="Move down">Down</button>
+        <button type="button" data-dir="right" class="right" aria-label="Move right">Right</button>
+      </section>
+      <p class="help">Controls: Arrow keys/WASD to move, P to pause, R to restart.</p>
+    </main>
+    <audio id="snake-song" loop preload="auto">
+      <source src="./src/thefealdoproject-beethoven-symphony-no-7-2nd-movement-246122.mp3" type="audio/mpeg" />
+      <source src="./src/beethoven.mp3" type="audio/mpeg" />
+    </audio>
+    <script src="./dist/snake-app.js"></script>
+  </body>
+</html>

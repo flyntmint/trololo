@@ -1,0 +1,1430 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trololo Platformer</title>
+    <style>
+      :root {
+        --bg-top: #8fd3ff;
+        --bg-bottom: #d9f5ff;
+        --ground: #76b86f;
+        --platform: #7a5e43;
+        --ink: #242424;
+        --hud-bg: rgba(255, 255, 255, 0.88);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: radial-gradient(circle at 25% 20%, #b3e6ff 0%, #9bdcfc 30%, #7bc8ef 100%);
+        font-family: "Comic Sans MS", "Chalkboard SE", "Trebuchet MS", sans-serif;
+        overflow: hidden;
+      }
+
+      .game-wrap {
+        position: relative;
+        width: min(100vw, 1100px);
+        height: min(100vh, 640px);
+        border: 3px solid #1f1f1f;
+        box-shadow: 0 16px 42px rgba(0, 0, 0, 0.22);
+        background: linear-gradient(var(--bg-top), var(--bg-bottom));
+      }
+
+      #game {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .hud {
+        position: absolute;
+        right: 12px;
+        top: 12px;
+        background: var(--hud-bg);
+        border: 2px solid #252525;
+        border-radius: 10px;
+        padding: 8px 12px;
+        color: #111;
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        user-select: none;
+      }
+
+      .nuke-wheel {
+        position: relative;
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px solid #252525;
+        border-radius: 10px;
+        padding: 8px 10px;
+        width: 100%;
+        margin-top: 10px;
+        text-align: center;
+        user-select: none;
+      }
+
+      .nuke-wheel-title {
+        font-size: 14px;
+        font-weight: 800;
+        margin-bottom: 4px;
+      }
+
+      .nuke-wheel button {
+        border: 2px solid #222;
+        border-radius: 8px;
+        background: #ffd56f;
+        color: #111;
+        font-size: 14px;
+        font-weight: 800;
+        padding: 6px 10px;
+        cursor: pointer;
+      }
+
+      .nuke-wheel button:disabled {
+        background: #dbdbdb;
+        color: #666;
+        cursor: default;
+      }
+
+      .nuke-wheel-odds {
+        margin-top: 4px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #2a2a2a;
+      }
+
+      .nuke-wheel-result {
+        margin-top: 4px;
+        font-size: 12px;
+        font-weight: 800;
+        color: #8b1717;
+        min-height: 16px;
+      }
+
+      .health {
+        position: absolute;
+        right: 12px;
+        top: 62px;
+        width: min(280px, 32vw);
+        background: rgba(255, 255, 255, 0.88);
+        border: 2px solid #252525;
+        border-radius: 10px;
+        padding: 6px 8px;
+        z-index: 4;
+      }
+
+      .health-label {
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 5px;
+        text-align: center;
+      }
+
+      .health-track {
+        height: 14px;
+        border: 2px solid #252525;
+        border-radius: 999px;
+        background: #eee;
+        overflow: hidden;
+      }
+
+      .health-fill {
+        height: 100%;
+        width: 100%;
+        background: linear-gradient(90deg, #ff4e4e, #ff8d4e);
+        transition: width 120ms linear;
+      }
+
+      .shop {
+        position: absolute;
+        left: 12px;
+        top: 12px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px solid #252525;
+        border-radius: 10px;
+        padding: 10px 12px;
+        width: 260px;
+        max-height: calc(100% - 24px);
+        overflow-y: auto;
+        user-select: none;
+      }
+
+      .shop.hidden {
+        display: none;
+      }
+
+      .shop-toggle-btn {
+        position: absolute;
+        right: 12px;
+        bottom: 132px;
+        z-index: 6;
+        border: 2px solid #222;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.92);
+        color: #111;
+        font-size: 13px;
+        font-weight: 800;
+        padding: 7px 10px;
+        cursor: pointer;
+      }
+
+      .shop h2 {
+        margin: 0 0 8px;
+        font-size: 19px;
+      }
+
+      .shop .spent {
+        font-size: 15px;
+        margin-bottom: 8px;
+        font-weight: 700;
+      }
+
+      .shop button {
+        width: 100%;
+        border: 2px solid #262626;
+        background: #ffe27d;
+        border-radius: 8px;
+        padding: 7px 8px;
+        margin-bottom: 7px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .shop button:disabled {
+        background: #dadada;
+        color: #666;
+        cursor: default;
+      }
+
+      .shop p {
+        margin: 4px 0 0;
+        font-size: 12px;
+        color: #2b2b2b;
+      }
+
+      .avatar-shop {
+        margin-top: 10px;
+        border-top: 2px dashed #909090;
+        padding-top: 8px;
+      }
+
+      .avatar-shop h3 {
+        margin: 0 0 6px;
+        font-size: 14px;
+      }
+
+      .avatar-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+      }
+
+      .avatar-status {
+        margin-top: 6px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #1f1f1f;
+      }
+
+      .bg-shop {
+        margin-top: 10px;
+        border-top: 2px dashed #909090;
+        padding-top: 8px;
+      }
+
+      .bg-shop h3 {
+        margin: 0 0 6px;
+        font-size: 14px;
+      }
+
+      .bg-status {
+        margin-top: 6px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #1f1f1f;
+      }
+
+      .nuke-row {
+        margin-top: 10px;
+        display: grid;
+        grid-template-columns: 68px 1fr;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .nuke-row img {
+        width: 68px;
+        height: 52px;
+        object-fit: cover;
+        border: 2px solid #202020;
+        border-radius: 6px;
+      }
+
+      .nuke-row button {
+        margin: 0;
+        background: #ff7a7a;
+      }
+
+      .finish {
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        text-align: center;
+        background: rgba(0, 0, 0, 0.58);
+        color: #fff;
+        z-index: 20;
+      }
+
+      .finish.visible {
+        display: flex;
+      }
+
+      .finish-panel {
+        background: rgba(20, 20, 20, 0.78);
+        border: 3px solid #fff;
+        border-radius: 14px;
+        padding: 24px 30px;
+      }
+
+      .finish h1 {
+        margin: 0 0 12px;
+        font-size: clamp(32px, 5vw, 54px);
+      }
+
+      .finish p {
+        margin: 0;
+        font-size: clamp(18px, 2.5vw, 26px);
+      }
+
+      .finish-back {
+        margin-top: 12px;
+        border: 2px solid #202020;
+        border-radius: 10px;
+        background: #ffe07d;
+        padding: 9px 12px;
+        font-size: 16px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .donate {
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.42);
+        z-index: 5;
+      }
+
+      .donate.visible {
+        display: flex;
+      }
+
+      .donate-card {
+        width: min(92vw, 360px);
+        background: #fffef2;
+        border: 3px solid #232323;
+        border-radius: 12px;
+        padding: 14px;
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+        text-align: center;
+      }
+
+      .donate-card h3 {
+        margin: 0 0 6px;
+        font-size: 26px;
+      }
+
+      .donate-card p {
+        margin: 0 0 10px;
+        font-size: 15px;
+      }
+
+      .pay-methods {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+        margin-bottom: 10px;
+      }
+
+      .pay-method {
+        border: 2px solid #242424;
+        border-radius: 8px;
+        background: #f2f2f2;
+        padding: 6px 8px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .pay-method.active {
+        background: #9be7a4;
+      }
+
+      .donate-options {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .donate-options button,
+      .donate-close {
+        border: 2px solid #242424;
+        border-radius: 8px;
+        background: #ffd56f;
+        padding: 8px 10px;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .donate-close {
+        margin-top: 10px;
+        width: 100%;
+        background: #e9e9e9;
+      }
+
+      .robux {
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.56);
+        z-index: 6;
+      }
+
+      .robux.visible {
+        display: flex;
+      }
+
+      .robux-card {
+        width: min(92vw, 430px);
+        background: #181d2d;
+        color: #f1f5ff;
+        border: 2px solid #3ce66c;
+        border-radius: 12px;
+        padding: 14px;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+        text-align: center;
+      }
+
+      .robux-card h3 {
+        margin: 0 0 10px;
+        font-size: 34px;
+        line-height: 1.05;
+      }
+
+      .robux-item {
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 10px 0;
+        margin-bottom: 10px;
+      }
+
+      .robux-item strong {
+        display: block;
+        font-size: 26px;
+      }
+
+      .robux-item span {
+        opacity: 0.86;
+      }
+
+      .robux-text {
+        margin: 0 0 12px;
+        font-size: 14px;
+        opacity: 0.92;
+      }
+
+      .robux-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .robux-actions button {
+        border: 2px solid #0c1020;
+        border-radius: 8px;
+        padding: 9px 10px;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .robux-buy {
+        background: #f2f2f2;
+        color: #1d1d1d;
+      }
+
+      .robux-close {
+        background: #2a324a;
+        color: #fff;
+      }
+
+      .annoy {
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 7;
+      }
+
+      .annoy.visible {
+        display: flex;
+      }
+
+      .annoy-card {
+        width: min(82vw, 280px);
+        background: #fff4d6;
+        border: 3px solid #202020;
+        border-radius: 12px;
+        padding: 10px;
+        text-align: center;
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+      }
+
+      .annoy-card img {
+        width: 100%;
+        height: auto;
+        display: block;
+        border: 2px solid #202020;
+        border-radius: 8px;
+        margin-bottom: 8px;
+      }
+
+      .annoy-close {
+        width: 100%;
+        border: 2px solid #202020;
+        border-radius: 8px;
+        background: #ececec;
+        padding: 8px 10px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .man {
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 7;
+      }
+
+      .man.visible {
+        display: flex;
+      }
+
+      .man-card {
+        width: min(82vw, 300px);
+        background: #dcefff;
+        border: 3px solid #202020;
+        border-radius: 12px;
+        padding: 10px;
+        text-align: center;
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+      }
+
+      .man-card img {
+        width: 100%;
+        height: auto;
+        display: block;
+        border: 2px solid #202020;
+        border-radius: 8px;
+        margin-bottom: 8px;
+      }
+
+      .man-close {
+        width: 100%;
+        border: 2px solid #202020;
+        border-radius: 8px;
+        background: #ececec;
+        padding: 8px 10px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .num-popup {
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 7;
+      }
+
+      .num-popup.visible {
+        display: flex;
+      }
+
+      .num-card {
+        width: min(84vw, 320px);
+        background: #f6f7ff;
+        border: 3px solid #202020;
+        border-radius: 12px;
+        padding: 10px;
+        text-align: center;
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+      }
+
+      .num-card img {
+        width: 100%;
+        height: auto;
+        display: block;
+        border: 2px solid #202020;
+        border-radius: 8px;
+        margin-bottom: 8px;
+      }
+
+      .num-close {
+        width: 100%;
+        border: 2px solid #202020;
+        border-radius: 8px;
+        background: #ececec;
+        padding: 8px 10px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .mode-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.58);
+      }
+
+      .mode-overlay.hidden {
+        display: none;
+      }
+
+      .mode-card {
+        width: min(92vw, 420px);
+        background: #fff;
+        border: 3px solid #222;
+        border-radius: 14px;
+        padding: 18px;
+        text-align: center;
+      }
+
+      .mode-card h2 {
+        margin: 0 0 10px;
+        font-size: 32px;
+      }
+
+      .mode-card p {
+        margin: 0 0 12px;
+        font-size: 16px;
+      }
+
+      .mode-card button {
+        width: 100%;
+        border: 2px solid #222;
+        border-radius: 10px;
+        background: #ffd979;
+        padding: 10px 12px;
+        margin-bottom: 8px;
+        font-size: 18px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .mode-card .danger {
+        background: #ff8c8c;
+      }
+
+      .mode-card .muga-mode {
+        background: #9fe7ff;
+      }
+
+      .mode-card .super-easy {
+        background: #b9ffb8;
+      }
+
+      .muga-mode-popup {
+        position: absolute;
+        inset: 0;
+        z-index: 9;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.66);
+      }
+
+      .muga-mode-popup.visible {
+        display: flex;
+      }
+
+      .auth-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 12;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.72);
+      }
+
+      .auth-overlay.hidden {
+        display: none;
+      }
+
+      .auth-card {
+        width: min(92vw, 420px);
+        background: #ffffff;
+        border: 3px solid #1f1f1f;
+        border-radius: 14px;
+        padding: 16px;
+        text-align: center;
+        box-shadow: 0 12px 34px rgba(0, 0, 0, 0.42);
+      }
+
+      .auth-card h3 {
+        margin: 0 0 8px;
+        font-size: 28px;
+      }
+
+      .auth-hint {
+        margin: 0 0 10px;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .auth-card input {
+        width: 100%;
+        border: 2px solid #222;
+        border-radius: 9px;
+        padding: 9px 10px;
+        margin-bottom: 8px;
+        font-size: 16px;
+        font-weight: 700;
+      }
+
+      .auth-submit {
+        width: 100%;
+        border: 2px solid #222;
+        border-radius: 9px;
+        background: #ffd979;
+        padding: 10px 12px;
+        font-size: 17px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .auth-forgot {
+        width: 100%;
+        border: 2px solid #222;
+        border-radius: 9px;
+        background: #d8f4ff;
+        padding: 9px 12px;
+        margin-top: 6px;
+        font-size: 14px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .auth-save {
+        width: 100%;
+        border: 2px solid #222;
+        border-radius: 9px;
+        background: #d6ffd8;
+        padding: 9px 12px;
+        margin-top: 6px;
+        font-size: 14px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .auth-new {
+        width: 100%;
+        border: 2px solid #222;
+        border-radius: 9px;
+        background: #ffd4d4;
+        padding: 9px 12px;
+        margin-top: 6px;
+        font-size: 14px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .auth-message {
+        min-height: 20px;
+        margin: 8px 0 0;
+        font-size: 13px;
+        font-weight: 800;
+        color: #b42323;
+      }
+
+      .server-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 11;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.72);
+      }
+
+      .server-overlay.hidden {
+        display: none;
+      }
+
+      .server-card {
+        width: min(92vw, 460px);
+        background: #ffffff;
+        border: 3px solid #1f1f1f;
+        border-radius: 14px;
+        padding: 16px;
+        text-align: center;
+        box-shadow: 0 12px 34px rgba(0, 0, 0, 0.42);
+      }
+
+      .server-card h3 {
+        margin: 0 0 8px;
+        font-size: 28px;
+      }
+
+      .server-hint {
+        margin: 0 0 10px;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .server-card input {
+        width: 100%;
+        border: 2px solid #222;
+        border-radius: 9px;
+        padding: 9px 10px;
+        margin-bottom: 8px;
+        font-size: 16px;
+        font-weight: 700;
+      }
+
+      .server-action {
+        width: 100%;
+        border: 2px solid #222;
+        border-radius: 9px;
+        padding: 9px 12px;
+        margin-top: 6px;
+        font-size: 14px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .server-create {
+        background: #d6ffd8;
+      }
+
+      .server-join {
+        background: #d8f4ff;
+      }
+
+      .server-list {
+        margin-top: 10px;
+        display: grid;
+        gap: 6px;
+        max-height: 200px;
+        overflow: auto;
+      }
+
+      .server-list button {
+        width: 100%;
+        border: 2px solid #222;
+        border-radius: 9px;
+        background: #ffe6a7;
+        padding: 7px 10px;
+        font-size: 13px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .server-empty {
+        font-size: 13px;
+        font-weight: 700;
+        color: #4e4e4e;
+      }
+
+      .server-message {
+        min-height: 20px;
+        margin: 8px 0 0;
+        font-size: 13px;
+        font-weight: 800;
+        color: #b42323;
+      }
+
+      .muga-mode-card {
+        width: min(92vw, 520px);
+        background: #ffffff;
+        border: 3px solid #1f1f1f;
+        border-radius: 14px;
+        padding: 14px;
+        text-align: center;
+        box-shadow: 0 12px 34px rgba(0, 0, 0, 0.42);
+      }
+
+      .muga-mode-card img {
+        width: min(82vw, 360px);
+        max-height: 42vh;
+        object-fit: contain;
+        display: block;
+        margin: 0 auto 10px;
+        border: 2px solid #1f1f1f;
+        border-radius: 10px;
+      }
+
+      .muga-mode-card p {
+        margin: 0 0 10px;
+        font-size: clamp(20px, 3.2vw, 30px);
+        font-weight: 900;
+      }
+
+      .muga-mode-close {
+        width: 100%;
+        border: 2px solid #1f1f1f;
+        border-radius: 9px;
+        background: #ffd979;
+        padding: 10px 12px;
+        font-size: 18px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .loading-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.82);
+      }
+
+      .loading-overlay.hidden {
+        display: none;
+      }
+
+      .loading-card {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(180deg, #f2f8ff 0%, #d9ebff 100%);
+        border: 0;
+        border-radius: 0;
+        padding: 26px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .loading-card h2 {
+        margin: 0 0 14px;
+        font-size: clamp(38px, 7vw, 72px);
+      }
+
+      .loading-track {
+        width: min(86vw, 920px);
+        height: 34px;
+        border: 2px solid #202020;
+        border-radius: 999px;
+        overflow: hidden;
+        background: #e8e8e8;
+        margin-bottom: 16px;
+      }
+
+      .loading-fill {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #3dbdff, #5ef06d);
+        transition: width 80ms linear;
+      }
+
+      .loading-text {
+        margin: 0 0 16px;
+        font-size: clamp(18px, 2.2vw, 28px);
+        font-weight: 700;
+      }
+
+      .loading-skip {
+        width: min(86vw, 920px);
+        border: 2px solid #202020;
+        border-radius: 10px;
+        background: #ffd978;
+        padding: 14px 18px;
+        font-size: clamp(18px, 2.2vw, 28px);
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .loading-pause {
+        width: min(86vw, 920px);
+        margin-top: 10px;
+        border: 2px solid #202020;
+        border-radius: 10px;
+        background: #d5f4ff;
+        padding: 12px 16px;
+        font-size: clamp(16px, 2vw, 24px);
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .cool-ad {
+        position: absolute;
+        left: 50%;
+        bottom: 58px;
+        transform: translateX(-50%);
+        z-index: 6;
+        display: none;
+        background: rgba(0, 0, 0, 0.72);
+        border: 2px solid #f2f2f2;
+        border-radius: 10px;
+        padding: 8px;
+        text-align: center;
+        min-width: 260px;
+      }
+
+      .cool-ad.visible {
+        display: block;
+      }
+
+      .cool-ad img {
+        width: min(52vw, 280px);
+        max-height: 140px;
+        object-fit: cover;
+        border-radius: 6px;
+        display: block;
+        margin: 0 auto 6px;
+      }
+
+      .cool-ad p {
+        margin: 0;
+        color: #fff;
+        font-weight: 700;
+        font-size: 16px;
+      }
+
+      .mute-btn {
+        position: absolute;
+        right: 12px;
+        bottom: 12px;
+        z-index: 6;
+        border: 2px solid #222;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.9);
+        color: #111;
+        font-size: 14px;
+        font-weight: 700;
+        padding: 7px 12px;
+        cursor: pointer;
+      }
+
+      .sfx-btn {
+        position: absolute;
+        right: 12px;
+        bottom: 52px;
+        z-index: 6;
+        border: 2px solid #222;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.9);
+        color: #111;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 6px 10px;
+        cursor: pointer;
+      }
+
+      .skip-rage-btn {
+        position: absolute;
+        right: 12px;
+        bottom: 92px;
+        z-index: 6;
+        width: 68px;
+        height: 68px;
+        border: 2px solid #222;
+        border-radius: 999px;
+        background: #e6f6ff;
+        padding: 0;
+        cursor: pointer;
+        overflow: hidden;
+      }
+
+      .skip-rage-btn img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      .admin-toggle {
+        position: absolute;
+        left: 12px;
+        bottom: 12px;
+        z-index: 6;
+        border: 2px solid #222;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.9);
+        color: #111;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 6px 10px;
+        cursor: pointer;
+      }
+
+      .admin-panel {
+        position: absolute;
+        left: 12px;
+        bottom: 52px;
+        z-index: 6;
+        width: 260px;
+        background: rgba(255, 255, 255, 0.95);
+        border: 2px solid #222;
+        border-radius: 10px;
+        padding: 10px;
+        display: none;
+      }
+
+      .admin-panel.visible {
+        display: block;
+      }
+
+      .admin-panel h4 {
+        margin: 0 0 8px;
+        font-size: 16px;
+      }
+
+      .admin-panel button {
+        width: 100%;
+        border: 2px solid #222;
+        border-radius: 8px;
+        background: #d8f4ff;
+        padding: 7px 8px;
+        margin-bottom: 7px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .admin-power {
+        display: grid;
+        grid-template-columns: 40px 1fr;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .admin-power img {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        border: 1px solid #333;
+        object-fit: cover;
+      }
+
+      .admin-status {
+        margin: 0;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .endings-btn {
+        position: absolute;
+        right: 12px;
+        bottom: 172px;
+        z-index: 6;
+        border: 2px solid #222;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.92);
+        color: #111;
+        font-size: 13px;
+        font-weight: 800;
+        padding: 6px 10px;
+        cursor: pointer;
+      }
+
+      .snake-link {
+        position: absolute;
+        right: 12px;
+        top: 108px;
+        z-index: 9;
+        border: 2px solid #222;
+        border-radius: 10px;
+        background: rgba(213, 244, 255, 0.95);
+        color: #111;
+        font-size: 13px;
+        font-weight: 800;
+        padding: 7px 10px;
+        text-decoration: none;
+      }
+
+      .bankrupt-btn {
+        position: absolute;
+        right: 12px;
+        bottom: 212px;
+        z-index: 6;
+        border: 2px solid #222;
+        border-radius: 10px;
+        background: #ffb3b3;
+        color: #111;
+        font-size: 12px;
+        font-weight: 900;
+        padding: 6px 8px;
+        max-width: 220px;
+        cursor: pointer;
+      }
+
+      .endings-panel {
+        position: absolute;
+        right: 12px;
+        top: 112px;
+        z-index: 6;
+        width: 220px;
+        max-height: min(72vh, 520px);
+        background: rgba(255, 255, 255, 0.95);
+        border: 2px solid #222;
+        border-radius: 10px;
+        padding: 10px;
+        display: none;
+        overflow: hidden;
+      }
+
+      .endings-panel.visible {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .endings-panel h4 {
+        margin: 0 0 8px;
+        font-size: 16px;
+      }
+
+      .endings-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 5px;
+        font-size: 13px;
+        font-weight: 700;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding-right: 2px;
+      }
+
+      .ending-item {
+        padding: 5px 6px;
+        border-radius: 6px;
+        border: 1px solid #949494;
+        background: #f3f3f3;
+      }
+
+      .ending-item.unlocked {
+        background: #d7ffd9;
+        border-color: #3c9b44;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="game-wrap">
+      <canvas id="game"></canvas>
+      <div id="hud" class="hud">Stars: 0 / 100</div>
+      <section class="health">
+        <div id="health-label" class="health-label">Health: 100 / 100</div>
+        <div class="health-track">
+          <div id="health-fill" class="health-fill"></div>
+        </div>
+      </section>
+      <aside class="shop">
+        <h2>Pay To Win</h2>
+        <div id="spent" class="spent">Spent: $0.00</div>
+        <button id="buy-gun">Buy Gun ($4.99)</button>
+        <button id="buy-jetpack">Buy Flying Jetpack ($9.99)</button>
+        <button id="buy-speed">Buy Speed 2x ($1.99)</button>
+        <button id="mute-popups">Mute Popups: OFF</button>
+        <button id="scam-btn">free money!!!</button>
+        <section class="avatar-shop">
+          <h3>Avatar Shop</h3>
+          <div class="avatar-grid">
+            <button id="avatar-default">Use Default</button>
+            <button id="avatar-muga">Use Muga</button>
+            <button id="avatar-console">Use Console</button>
+            <button id="avatar-save">Save Skin</button>
+            <button id="avatar-load">Load Saved</button>
+          </div>
+          <div id="avatar-status" class="avatar-status">Skin: Default</div>
+        </section>
+        <section class="bg-shop">
+          <h3>Background</h3>
+          <div class="avatar-grid">
+            <button id="bg-default">Sky Default</button>
+            <button id="bg-muga">Muga</button>
+            <button id="bg-dark">Black Flames+Skulls</button>
+            <button id="bg-donut">Pink Rainbow Donuts</button>
+          </div>
+          <div id="bg-status" class="bg-status">Background: Sky Default</div>
+        </section>
+        <section id="nuke-wheel" class="nuke-wheel">
+          <div class="nuke-wheel-title">Nuke Gamble Wheel</div>
+          <button id="nuke-wheel-spin">Spin</button>
+          <div class="nuke-wheel-odds">0000000000000.1% chance to get NUKE</div>
+          <div id="nuke-wheel-result" class="nuke-wheel-result">ready</div>
+        </section>
+        <div class="nuke-row">
+          <img src="./src/nuke.jpg?v=1" alt="nuke" />
+          <button id="nuke-btn">Nuke Game ($999.99)</button>
+        </div>
+        <p>Gun: hold F to shoot bullets at stars.</p>
+        <p>Jetpack: hold Space in air to fly.</p>
+      </aside>
+      <section id="finish" class="finish">
+        <div class="finish-panel">
+          <h1>Winner!</h1>
+          <p>Trololo got 100 stars!</p>
+          <button id="finish-back" class="finish-back">Go Back</button>
+        </div>
+      </section>
+      <section id="donate-popup" class="donate">
+        <div class="donate-card">
+          <h3>plz donate</h3>
+          <p>Support trololo with cash upgrades:</p>
+          <div class="pay-methods">
+            <button class="pay-method active" data-method="card">card</button>
+            <button class="pay-method" data-method="cash">cash</button>
+            <button class="pay-method" data-method="sad">:(</button>
+          </div>
+          <div class="donate-options">
+            <button class="donate-option" data-amount="1">$1</button>
+            <button class="donate-option" data-amount="5">$5</button>
+            <button class="donate-option" data-amount="20">$20</button>
+            <button class="donate-option" data-amount="100">$100</button>
+          </div>
+          <button id="donate-close" class="donate-close">Maybe Later</button>
+        </div>
+      </section>
+      <section id="robux-popup" class="robux">
+        <div class="robux-card">
+          <h3>Insufficient Robux</h3>
+          <div class="robux-item">
+            <strong>10k Money</strong>
+            <span>15 robux</span>
+          </div>
+          <p class="robux-text">
+            You need an additional 15. Would you like to buy a 400 package?
+          </p>
+          <div class="robux-actions">
+            <button id="robux-buy" class="robux-buy">Buy Robux</button>
+            <button id="robux-close" class="robux-close">Close</button>
+          </div>
+        </div>
+      </section>
+      <section id="annoy-popup" class="annoy">
+        <div class="annoy-card">
+          <img src="./src/annoy-face.svg?v=1" alt="annoy popup" />
+          <button id="annoy-close" class="annoy-close">Close</button>
+        </div>
+      </section>
+      <section id="loading-overlay" class="loading-overlay">
+        <div class="loading-card">
+          <h2>Loading...</h2>
+          <div class="loading-track">
+            <div id="loading-fill" class="loading-fill"></div>
+          </div>
+          <p id="loading-text" class="loading-text">preparing rage content</p>
+          <button id="loading-skip" class="loading-skip">Skip Loading</button>
+          <button id="loading-pause" class="loading-pause">Pause Loading</button>
+        </div>
+      </section>
+      <section id="auth-overlay" class="auth-overlay">
+        <div class="auth-card">
+          <h3 id="auth-title">Account Login</h3>
+          <p id="auth-hint" class="auth-hint"></p>
+          <input id="auth-username" type="text" autocomplete="username" placeholder="Username" />
+          <input id="auth-password" type="password" autocomplete="current-password" placeholder="Password" />
+          <button id="auth-submit" class="auth-submit">Continue</button>
+          <button id="auth-save-password" class="auth-save">Save Password</button>
+          <button id="auth-forgot" class="auth-forgot">Forgot Password</button>
+          <button id="auth-new-account" class="auth-new">New Account</button>
+          <p id="auth-message" class="auth-message"></p>
+        </div>
+      </section>
+      <section id="server-overlay" class="server-overlay hidden">
+        <div class="server-card">
+          <h3>Choose Server</h3>
+          <p id="server-hint" class="server-hint"></p>
+          <input id="server-name" type="text" placeholder="Server Name" />
+          <button id="server-create" class="server-action server-create">Create Server</button>
+          <button id="server-join" class="server-action server-join">Join Server</button>
+          <div id="server-list" class="server-list"></div>
+          <p id="server-message" class="server-message"></p>
+        </div>
+      </section>
+      <section id="mode-overlay" class="mode-overlay">
+        <div class="mode-card">
+          <h2>Choose Mode</h2>
+          <p>pick wisely</p>
+          <button id="mode-super-duper-muga-easy" class="super-easy">super duper muga easy</button>
+          <button id="mode-super-easy" class="super-easy">super duper easy</button>
+          <button id="mode-easy">easy</button>
+          <button id="mode-medium">medium</button>
+          <button id="mode-muga" class="muga-mode">muga impossible</button>
+          <button id="mode-danger" class="danger">dont click this</button>
+        </div>
+      </section>
+      <section id="muga-mode-popup" class="muga-mode-popup">
+        <div class="muga-mode-card">
+          <img src="./src/annoy-face.svg?v=1" alt="muga mode warning" />
+          <p>bro you cant handle this its to hard for eanyone</p>
+          <button id="muga-mode-close" class="muga-mode-close">Close</button>
+        </div>
+      </section>
+      <section id="cool-ad" class="cool-ad">
+        <img src="./src/cool-ad.gif?v=1" alt="cool ad" />
+        <p>cool add right?</p>
+      </section>
+      <section id="admin-panel" class="admin-panel">
+        <h4>Admin Panel</h4>
+        <button id="admin-infinite">Infinite Dollars: OFF</button>
+        <button id="admin-power-btn" class="admin-power">
+          <img src="./src/admin-icon.svg?v=1" alt="admin icon" />
+          <span>Console Power (fly+gun+speed)</span>
+        </button>
+        <p id="admin-status" class="admin-status">status: normal player</p>
+      </section>
+      <section id="endings-panel" class="endings-panel">
+        <h4>Endings</h4>
+        <ul id="endings-list" class="endings-list"></ul>
+      </section>
+      <button id="admin-toggle" class="admin-toggle">Admin Panel</button>
+      <button id="shop-toggle-btn" class="shop-toggle-btn">Hide Pay To Win</button>
+      <a href="./snake.html" class="snake-link">Play Snake</a>
+      <button id="bankrupt-btn" class="bankrupt-btn">$99,999,999,999,999 (does nothing)</button>
+      <button id="endings-btn" class="endings-btn">Endings</button>
+      <button id="skip-rage-btn" class="skip-rage-btn" title="Skip Rage Part">
+        <img src="./src/skip-rage.svg?v=1" alt="Skip rage" />
+      </button>
+      <button id="sheep-mute-btn" class="sfx-btn">Mute Sheep</button>
+      <button id="mute-btn" class="mute-btn">Mute</button>
+    </main>
+    <script type="module" src="./dist/main.js"></script>
+  </body>
+</html>

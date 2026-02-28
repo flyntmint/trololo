@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="520" viewBox="0 0 360 520" role="img" aria-label="MAN horse beach">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8fc8ff"/>
+      <stop offset="100%" stop-color="#d8ecff"/>
+    </linearGradient>
+    <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#9fd7ff"/>
+      <stop offset="100%" stop-color="#7fb0db"/>
+    </linearGradient>
+  </defs>
+  <rect width="360" height="520" fill="url(#sky)"/>
+  <rect y="300" width="360" height="90" fill="url(#sea)" opacity="0.85"/>
+  <rect y="390" width="360" height="130" fill="#e6dccb"/>
+  <path d="M0 394 C90 370, 180 418, 360 388" stroke="#d8f0ff" stroke-width="6" fill="none"/>
+  <text x="180" y="72" text-anchor="middle" font-family="Impact, Arial Black, sans-serif" font-size="82" fill="#ffffff" stroke="#1e1e1e" stroke-width="3">MAN</text>
+  <g transform="translate(210,356)">
+    <ellipse cx="0" cy="0" rx="68" ry="26" fill="#4c2b20"/>
+    <rect x="-14" y="-34" width="34" height="40" rx="8" fill="#4c2b20"/>
+    <rect x="38" y="-26" width="30" height="14" rx="6" fill="#4c2b20"/>
+    <rect x="-48" y="20" width="10" height="72" fill="#2d1b14"/>
+    <rect x="-20" y="20" width="10" height="72" fill="#2d1b14"/>
+    <rect x="18" y="20" width="10" height="72" fill="#2d1b14"/>
+    <rect x="44" y="20" width="10" height="72" fill="#2d1b14"/>
+    <path d="M-70 -4 Q-94 -22 -90 -44" stroke="#2d1b14" stroke-width="8" fill="none" stroke-linecap="round"/>
+  </g>
+</svg>
